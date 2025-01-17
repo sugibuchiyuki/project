@@ -1,0 +1,69 @@
+jQuery(document).ready(function($){
+
+	function mainphoto_slider(){
+		$('#top_photo').append('<div id="mp_control_box"><button type="button" id="mp_control_prev">preview</button><button type="button" id="mp_control_pause">pause</button><button type="button" id="mp_control_play">play</button><button type="button" id="mp_control_next">Next</button></div>');
+		var slideObj = $('#top_photo_list');
+		slideObj.slick({
+			accessibility: true,
+			autoplay: true,
+			autoplaySpeed: 5000,
+			speed: 750,
+			initialSlide: 0,
+			//スライドの行数
+			// rows: 2, 
+			//各行に表示するスライド数
+			// slidesPerRow: 2, 
+			slidesToShow: 3,
+			slidesToScroll: 1,
+			centerMode: true,
+			centerPadding: 0,
+			variableWidth: true,
+			infinite: true,
+			prevArrow: '#mp_control_prev',
+			nextArrow: '#mp_control_next',
+			easing: 'swing',
+			//フェイドインで切り替える
+			fade: false,
+			touchMove: true,
+			pauseOnFocus: true,
+			pauseOnHover: true,
+			touchThreshold: 15,
+			dots: true,
+			//ナビゲーションドットの設置場所
+			appendDots: '#mp_control_box',
+			responsive:[
+				{
+					breakpoint: 670,
+					settings:{
+						centerMode: false,
+						variableWidth: false,
+						dots: false,
+						slidesToShow: 1
+					}
+				}
+			]
+		}).slick('slickPlay');
+
+		// slideObj.slick('slickPlay');
+		$('#mp_control_prev').on('click keypress',function(){
+			slideObj.slick('slickPrev');
+		});
+		$('#mp_control_next').on('click keypress',function(){
+			slideObj.slick('slickNext');
+		});
+		$('#mp_control_pause').on('click keypress',function(){
+			$('#mp_control_pause').hide();
+			$('#mp_control_play').show();
+			slideObj.slick('slickPause');
+		});
+		$('#mp_control_play').on('click keypress',function(){
+			$('#mp_control_play').hide();
+			$('#mp_control_pause').show();
+			slideObj.slick('slickPlay');
+		});
+	}
+	if($('#top_photo_list div.photo').length > 3){
+		mainphoto_slider();
+	}
+
+});

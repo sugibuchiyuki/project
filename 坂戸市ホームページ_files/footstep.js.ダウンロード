@@ -1,0 +1,136 @@
+jQuery(document).ready(function($){
+	if(('sessionStorage' in window) && (window.sessionStorage !== null)) {
+
+		var pageTitle = $('h1').text(); // ページタイトル
+		if($('#top')[0]){
+			pageTitle = 'トップページ'; // トップページの場合
+		}
+		else if($('#front')[0]){
+			pageTitle = 'トップページ'; // フロントページの場合
+		}
+		else if($('h1 img')[0]){
+			pageTitle = $('h1 img').attr('alt');
+		}
+		var pageUrl = htmlspecialchars_URL(location.href);    // ページアドレス
+
+		// あしあとリスト
+		function  footstepList() {
+			var footstep_rireki_buf = ''; // 履歴一覧用
+
+			footstep_rireki_buf = JSON.parse(sessionStorage.getItem('footstep_rireki'));
+			if(footstep_rireki_buf === null){
+				footstep_rireki_buf = '';
+			}
+			
+			// あしあとの親要素設置
+			if($('#pankuzu_wrap')[0]){
+				$('#pankuzu_wrap').after($('<div id="footstep_wrap" />'));
+			}else{
+				$('#mymainback').prepend($('<div id="footstep_wrap" />'));
+			}
+			$('#footstep_wrap').append('<div id="footstep"><div id="footstep_detail"></div></div>');
+			// 今までのあしあとの展開
+			$('#footstep_detail').append(footstep_rireki_buf);
+			if($('#footstep_detail span:last-child a').attr('href') != pageUrl){
+				$('#footstep_detail').append('<span class="fs_rireki"><a href="' + pageUrl + '">' + pageTitle + '</a></span>');
+			}
+
+			// 末尾（現在のページ）はリンクさせない
+			$('#footstep_detail span:last-child a').on('click keypress',function(){
+				return false;
+			});
+			// あしあとクリア
+			$('#footstep').append('<span id="clear_footstep"></span>');
+			$('#clear_footstep').on('click',function(){
+				$('#footstep_detail').html('');
+				footstep_rireki_buf = $('#footstep_detail').html();
+				sessionStorage.setItem('footstep_rireki',JSON.stringify(footstep_rireki_buf));
+				$(this).hide();
+			});
+
+			// 最大10件の履歴を保持
+			if($('#footstep_detail > span').length > 10){
+				$('#footstep_detail > span:first-child').remove();
+			}
+
+			footstep_rireki_buf = $('#footstep_detail').html();
+			sessionStorage.setItem('footstep_rireki',JSON.stringify(footstep_rireki_buf));
+		}
+
+
+		// 最後に見たページを表示
+		function lastViewPage(){
+			var fs_lastItemHtml = $('#footstep span:last-child').html();
+			var fs_lastItemLS = JSON.parse(localStorage.getItem('footstep_lasturi'));
+			if(fs_lastItemLS === null){
+				fs_lastItemLS = '';
+			}
+
+			$('#header_nav2').prepend('<div id="link_lastviewpage" />');
+			$('#link_lastviewpage').prepend(fs_lastItemLS);
+
+			localStorage.setItem('footstep_lasturi',JSON.stringify(fs_lastItemHtml));
+		}
+
+
+		// ページ記憶：削除ボタンイベント割当
+		function kTPsetDelButton(ktp_buf){
+				$('#ktp_item_list .ktp_item_del').on('click',function(){
+					$(this).closest('.ktp_item').remove();
+					ktp_buf = $('#ktp_item_list').html();
+					localStorage.setItem('keep_page_uri',JSON.stringify(ktp_buf));
+				});
+				return ktp_buf;
+		}
+		// ページ記憶
+		function keepThisPage() {
+			$('#container').before('<div id="keep_page"><div id="ktp_list_wrap"><div id="ktp_list_wrap2"><span id="ktp_save" class="btn_func">このページを一時保存する</span><span id="ktp_del_all" class="btn_func">保存したページをすべて削除する</span><ul id="ktp_item_list"></ul></div></div></div>');
+			$('#ktp_list_wrap').hide();
+			var ktp_buf = JSON.parse(localStorage.getItem('keep_page_uri'));
+			if(ktp_buf === null || ktp_buf === undefined){
+				ktp_buf = '';
+			}
+			$('#ktp_item_list').html(ktp_buf);
+			$('#keep_page').prepend('<div id="kpt_viewsw_wrap"><span id="ktp_viewsw"></span></div>');
+
+			// var ktp_area_width = $('#keep_page').width();
+			// $('#keep_page').css('right','-'+ktp_area_width+'px');
+
+			ktp_buf = kTPsetDelButton(ktp_buf)
+			$('#ktp_save').on('click keypress',function(){
+				// $('#keep_page').css('right','0px');
+				if($('#ktp_item_list li:first-child a').attr('href') != pageUrl){
+					$('#ktp_item_list').prepend('<li class="ktp_item"><a href="'+pageUrl+'">'+pageTitle+'</a><span class="ktp_item_del"></span></li>');
+					ktp_buf = $('#ktp_item_list').html();
+					localStorage.setItem('keep_page_uri',JSON.stringify(ktp_buf));
+					// ktp_area_width = $('#keep_page').width();
+					// $('#keep_page').css('right','-'+ktp_area_width+'px');
+					ktp_buf = kTPsetDelButton(ktp_buf)
+				}
+			});
+			$('#ktp_del_all').on('click',function(){
+				$('#ktp_item_list').empty();
+					ktp_buf = $('#ktp_item_list').html();
+					localStorage.setItem('keep_page_uri',JSON.stringify(ktp_buf));
+			});
+
+			$('#ktp_viewsw,#ktp_list_wrap2').on('click',function(event){
+				event.stopPropagation();
+			})
+			$('#ktp_viewsw').on('click',function(){
+				$('#keep_page').toggleClass('open');
+				$('#ktp_list_wrap').toggle();
+			});
+			$(document).on('click',function(){
+				$('#keep_page').removeClass('open');
+				$('#ktp_list_wrap').hide();
+			});
+		}
+
+		footstepList(); 
+		// lastViewPage();
+		keepThisPage();
+
+
+	}
+});

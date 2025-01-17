@@ -1,0 +1,313 @@
+function checkCurrentDeviceWidhDeviceWidth(){
+	var devWidth = window.innerWidth;
+	if(devWidth > 1199){
+		return 'pc';
+	}else if(devWidth < 1199 && devWidth > 640){
+		return 'tab';
+	}else{
+		return 'sp';
+	}
+	return false;
+}
+
+// 印刷用プレビュー
+function print_mode(arg){
+		switch(arg){
+			case 'large':
+				print_largeFont();
+				break;
+			default: 
+				print_normal();
+				break;
+		}
+}
+
+// 通常の文字サイズで印刷
+function print_normal(){
+	var printModeText = '通常ページへ戻る';
+	var defaultModeText = '印刷';
+	if($('#print_mode_link.view_print_mode')[0]){
+		initColorMode();
+		$('#print_mode_link').removeClass('view_print_mode');
+		$('link[href*="print-preview.css"]').remove();
+		$('#print_mode_link').text(defaultModeText);
+		$('#print_mode_link_large').removeClass('hide');
+		$(window).scrollTop(0);
+	}else{
+		$('#print_mode_link_large').addClass('hide');
+		$('link[href*="/ssi/css/color-"]').remove();
+		$('head').append('<link rel="stylesheet" type="text/css" href="/ssi/css/print-preview.css">');
+		$('#print_mode_link').addClass('view_print_mode');
+		$('#print_mode_link').text(printModeText);
+		$(window).scrollTop(0);
+	}
+}
+
+// 大きい文字サイズで印刷
+function print_largeFont(){
+	var printModeText = '通常ページへ戻る';
+	var defaultModeText = '大きく印刷';
+	if('fontSize' in localStorage){
+		print_normal();
+	}else{
+		if($('#print_mode_link_large.view_print_mode')[0]){
+			$('html').removeClass('print_font_large');
+			initColorMode();
+			$('#print_mode_link_large').removeClass('view_print_mode');
+			$('link[href*="print-preview.css"]').remove();
+			$('#print_mode_link_large').text(defaultModeText);
+			$('#print_mode_link').removeClass('hide');
+		$(window).scrollTop(0);
+		}else{
+			$('#print_mode_link').addClass('hide');
+			$('html').addClass('print_font_large');
+			$('link[href*="/ssi/css/color-"]').remove();
+			$('head').append('<link rel="stylesheet" type="text/css" href="/ssi/css/print-preview.css">');
+			$('#print_mode_link_large').addClass('view_print_mode');
+			$('#print_mode_link_large').text(printModeText);
+		}
+	}
+}
+
+
+// 色変更
+function colorChange(strColorMode){
+	$('link[href*="/ssi/css/color-"]').remove();
+	switch(strColorMode){
+		case 'blue':
+			$('body').removeClass('color_change color_blue color_black').addClass('color_change color_blue');
+			$('head').append('<link rel="stylesheet" type="text/css" href="/ssi/css/color-blue.css" media="screen">');
+			localStorage.setItem('colorMode', 'blue');
+			break;
+		case 'black':
+			$('body').removeClass('color_change color_blue color_black').addClass('color_change color_black');
+			$('head').append('<link rel="stylesheet" type="text/css" href="/ssi/css/color-black.css" media="screen">');
+			localStorage.setItem('colorMode', 'black');
+			break;
+		case 'white':
+			$('body').removeClass('color_change color_blue color_black');
+			localStorage.removeItem('colorMode');
+			break;
+		default:
+			break;
+	}
+}
+
+// 色変更されていれば、ページ読み込み時にそれを反映
+function initColorMode(){
+	if( ('localStorage' in window) && (window.localStorage !== null) ) {
+		if(localStorage.getItem('colorMode')){
+			colorChange(localStorage.getItem('colorMode'));
+		}
+	}
+}
+// 色変更（前スクリプトとの互換性保持）
+function SetCss(cssNumber){
+	switch(cssNumber){
+		case 1:  colorChange('white');break;
+		case 2:  colorChange('black');break;
+		case 3:  colorChange('blue');break;
+		default: break;
+	}
+}
+
+
+// 文字サイズ変更
+function fontSizeChange(changeType){
+	var stepNum = 1.25;
+	switch(changeType){
+		case 'large':
+			$('html').css('font-size',parseInt($('html').css('font-size')) * stepNum + 'px');
+			localStorage.setItem('fontSize', $('html').css('font-size') );
+			break;
+		case 'small':
+			$('html').css('font-size',parseInt($('html').css('font-size')) / stepNum + 'px');
+			localStorage.setItem('fontSize', $('html').css('font-size') );
+			break;
+		case 'default':
+			$('html').css('font-size','');
+			localStorage.removeItem('fontSize');
+			break;
+		default:
+			break;
+	}
+}
+// 文字サイズ変更されていれば、ページ読み込み時にそれを反映
+function initFontSize(){
+	if( ('localStorage' in window) && (window.localStorage !== null) ) {
+		if(localStorage.getItem('fontSize')){
+			$('html').css('font-size',localStorage.getItem('fontSize'));
+		}
+	}
+}
+
+// 文字サイズ変更（前スクリプトとの互換性保持）
+function fsc(str){
+	switch(str){
+		case 'larger' : fontSizeChange('large'); break;
+		case 'default' : fontSizeChange('default'); break;
+		default: break;
+	}
+}
+
+
+jQuery(document).ready(function($){
+
+	// スマートフォン判定
+	// true: スマートフォン
+	// false: その他デバイス
+	function spCheck(){
+		if($('#spmenu').css('display') === 'block'){
+			return true;
+		}
+		return false;
+	}
+
+	// アクセシビリティチェッカの判定
+	// true:チェッカ表示
+	// false:通常表示
+	function accCheckerChk(){
+		if($('.errrange')[0]){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	// アコーディオンメニュー開閉
+	function accToggle(){
+		$('#header_box_acc button.acc_toggle').on('mouseenter click keypress',function(event){
+			$(this).closest('li').toggleClass('open');
+			event.stopPropagation();
+		});
+		$('#header_box_acc li').on('mouseleave',function(){
+			$(this).removeClass('open');
+		});
+		$('#header_box_acc').on('click',function(event){
+			event.stopPropagation();
+		});
+		$(document).on('click',function(){
+			$('#header_box_acc li.open').removeClass('open');
+		});
+	}
+
+	// ヘッダ固定スクロール
+	function headerScroll(){
+		var headerHeight = $('#header').height();
+		$(window).scroll(function(){
+			var scrollVal = $(this).scrollTop();
+			if(scrollVal > headerHeight){ // ヘッダ以下にスクロールしたとき
+				$('#header').addClass('header_fixed');
+				if(!$('#container.site_index')[0]){
+					$('#container').css('padding-top',headerHeight + 'px'); // スクロール時、position:fixedさせたときのコンテンツのズレ動きをさせない
+				}
+			}else if(scrollVal < headerHeight){
+				if($('#header.header_fixed')[0]){
+					$('#header').removeClass('header_fixed');
+					$('#container').css('padding-top','0px');
+				}
+			}
+		});
+	}
+
+	//テーブル伸縮
+	function detailFreeTable(){
+		$('#main_body .detail_free > table').each(function(){
+			$(this).wrap('<div class="sp_table_wrap2"><div class="sp_table_wrap"><div></div></div></div>div>');
+			$(this).parent().parent().before('<a class="sw_large_table sp_button">表のサイズを切り替える</a>');
+		});
+		$('#main_body a.sp_button').click(function(){
+			$(this).next().children('div').toggleClass('sp_large_table');
+		});
+	}
+
+	// 見出しをページ内リンクとして目次化する
+	function addIndextoDetail(){
+		// ユーザが追加したコンテンツ（div.detail_○○）があり、かつその中に見出しが設定されている場合に目次を作成。
+		if ($('#main_body div[class^="detail_"]')[0] && $('#main_body div[class^="detail_"] h2')[0]) {
+			var htag = '';
+			$('#main_header').after('<div id="sp_page_index_link_wrap"><ul id="sp_page_index_link"></ul></div>');
+			$('#sp_page_index_link_wrap').prepend('<button id="sp_page_index_link_toggle">ページ内目次</button>');
+			$('#main_body :header').each(function(i){
+				htag = $(this).get(0).tagName.toLowerCase();
+				// $(this).appe('id','sp_headline_'+i);
+				$(this).before('<span id="sp_headline_' + i + '"></span>');
+				$('#sp_page_index_link').append('<li><a href="#sp_headline_'+i+'" class="sp_headtype_'+htag+'">'+ $(this).text() +'</a></li>');
+			});
+			$('#sp_page_index_link').hide();
+			$('#sp_page_index_link_toggle, #sp_page_index_link a').on('click',function(){
+				$('#sp_page_index_link_toggle').toggleClass('open');
+				$('#sp_page_index_link').toggle();
+			});
+		}
+	}
+
+	// 空の関連情報を削除
+	function empty_kanren_remove(){
+		if ($('#kanren_info')[0]) {
+			if (!$('#kanren_info .kanren_box')[0]) {
+				$('#kanren_info').remove();
+			}
+		}
+	}
+		// ヘッダ固定スクロール
+	function headerScroll(){
+		var headerHeight = $('#header').height();
+		$(window).scroll(function(){
+			var scrollVal = $(this).scrollTop();
+			if(scrollVal > headerHeight){ // ヘッダ以下にスクロールしたとき
+				$('#header').addClass('header_fixed');
+				if(!$('#container.site_index')[0]){
+					$('#container').css('padding-top',headerHeight + 'px'); // スクロール時、position:fixedさせたときのコンテンツのズレ動きをさせない
+				}
+			}else if(scrollVal < headerHeight){
+				if($('#header.header_fixed')[0]){
+					$('#header').removeClass('header_fixed');
+					$('#container').css('padding-top','0px');
+				}
+			}
+		});
+	}
+
+	// スマートフォン用メニュー開閉
+	function spMenuToggle(){
+		$('#spm_menu').on('click',function(){
+			$('#spm_menu').toggleClass('open');
+			$('#top_search,#he_right,#pankuzu_wrap2').toggle();
+		});
+	}
+
+	function pageTopBtn(){
+		// ページトップ
+		var topBtn = $('#back_or_pagetop');
+		$(window).scroll(function () {
+			if ($(this).scrollTop() > 100) {
+				topBtn.addClass('view');
+			} else {
+				if(topBtn.hasClass('view')){
+					topBtn.removeClass('view');
+				}
+			}
+		});
+	}
+
+	//ナビゲーション機能メニュー
+	function showHeaderGnavi() {
+		$('#header_search_open').on('click',function(){
+			$('#bl_search').toggleClass('open');
+		});
+		$('#header_search').append('<button type="button" value="閉じる" id="header_search_close">閉じる</button>');	
+		$('#header_search_close').on('click keypress',function(){
+			$('#bl_search').removeClass('open');
+		});
+	}
+
+	initColorMode();
+	initFontSize();
+	detailFreeTable();
+	addIndextoDetail();
+	spMenuToggle();
+	pageTopBtn();
+	showHeaderGnavi();
+	
+});

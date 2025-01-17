@@ -1,0 +1,7 @@
+function htmlspecialchars_URL(str){
+	return (str + '').replace(/"/g,'%26quot;')
+					.replace(/'/g,'%26#039;')
+					.replace(/</g,'%26lt;')
+					.replace(/>/g,'%26gt;')
+					.replace(/&/g,'&amp;');
+}
